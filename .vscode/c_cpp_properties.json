@@ -1,0 +1,21 @@
+{
+  "version": 4,
+  "configurations": [
+    {
+      "name": "Win32",
+      "compilerPath": "",
+      "compilerArgs": [],
+      "intelliSenseMode": "msvc-x64",
+      "includePath": [
+        "D:\\OneDrive\\Arduino\\libraries\\**",
+        "C:\\Users\\${env:Username}\\AppData\\Local\\Arduino15\\packages\\esp8266\\**"
+      ],
+      "forcedInclude": [
+        "D:/Programs/Arduino/hardware/arduino/avr/cores/arduino/Arduino.h"
+      ],
+      "cStandard": "c11",
+      "cppStandard": "c++17",
+      "defines": ["_DEBUG", "UNICODE", "_UNICODE", "USBCON"]
+    }
+  ]
+}
