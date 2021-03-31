@@ -4,19 +4,36 @@
 // http://www.s2u4o.com
 //***************************************************
 
-#include <ESP8266WiFi.h>
+#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
+#include <Bounce2.h>     // https://github.com/thomasfredericks/Bounce2
 #include <WiFiUdp.h>
 #include <ArduinoJson.h>
 
+char *strtochar(String x)
+{
+    static char c[50];
+    x.toCharArray(c, 50);
+    return c;
+}
+
+char *floattochar(float i)
+{
+  static char c[5];
+  sprintf(c, "%3.1f", i);
+  return c;
+}
+
+const char *apName = strtochar("SSU WifiPlane " + String(ESP.getChipId()));
+
 /***************↓↓↓↓↓ 更改設定值 ↓↓↓↓↓***************/
 
-const char *ssid = "SoftSkillsUnion";
-const char *password = "24209346";
+const char *apPwd = "12345678"; // 基地台模式登入密碼
 
 /***************↑↑↑↑↑ 更改設定值 ↑↑↑↑↑***************/
 
 #define motorA D1
 #define motorB D5
+#define pinReset D3 // GPIO0
 
 int receivePort = 8888; // 接收UDP封包的通訊埠
 int remotPort = 2390;   // 發佈數據報的通訊埠
@@ -33,10 +50,15 @@ int intervalVcc = 3000;           // 傳輸電池電壓間隔
 unsigned long lastGetDataTime = 0; // 前次取得數據時間
 int intervalData = 5000;           // 判斷是否斷線間隔
 
+Bounce debouncer = Bounce();
+unsigned long btnPressTime = 0;        // 按下時間
+unsigned long btnPressDuration = 3000; // 按下持續時間
+
 int speedA = 0;
 int speedB = 0;
 
 WiFiUDP UDP;
+WiFiManager wm;
 
 void setup()
 {
@@ -44,32 +66,51 @@ void setup()
   Serial.println();
   analogWriteRange(255);
   pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
   pinMode(motorA, OUTPUT);
   pinMode(motorB, OUTPUT);
   analogWrite(motorA, 0);
   analogWrite(motorB, 0);
+  pinMode(pinReset, INPUT);
+  debouncer.attach(pinReset);
+  debouncer.interval(5);
 
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED)
+  bool res = wm.autoConnect(apName, apPwd);
+  if (!res)
   {
-    Serial.print(".");
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(200);
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(200);
+    Serial.println("Failed to connect");
   }
-  Serial.print("STA IP address: ");
-  Serial.println(WiFi.localIP());
-  receiveIP = remotIP = WiFi.localIP();
+  else
+  {
+    //if you get here you have connected to the WiFi
+    Serial.println("connected)");
+    Serial.print("STA IP address: ");
+    Serial.println(WiFi.localIP());
+    receiveIP = remotIP = WiFi.localIP();
 
-  remotIP[3] = 255; // 設定發佈數據報的IP為廣播位址
-  UDP.begin(receivePort);
-  digitalWrite(LED_BUILTIN, HIGH);
+    remotIP[3] = 255; // 設定發佈數據報的IP為廣播位址
+    UDP.begin(receivePort);
+    digitalWrite(LED_BUILTIN, HIGH);
+  }
 }
 
 void loop()
 {
+  debouncer.update();
+
+  if (debouncer.fell())
+  {
+    btnPressTime = millis();
+  }
+
+  if (debouncer.read() == LOW && millis() - btnPressTime >= btnPressDuration)
+  {
+    Serial.println("Reset");
+    wm.resetSettings();
+    ESP.restart();
+  }
+
   // UDP接收
   int packetSize = UDP.parsePacket();
   if (packetSize)
@@ -125,11 +166,4 @@ void loop()
     analogWrite(motorB, 0);
     Serial.println("Disconnected");
   }
-}
-
-char *floattochar(float i)
-{
-  static char c[5];
-  sprintf(c, "%3.1f", i);
-  return c;
 }
