@@ -11,9 +11,9 @@
 
 char *strtochar(String x)
 {
-    static char c[50];
-    x.toCharArray(c, 50);
-    return c;
+  static char c[50];
+  x.toCharArray(c, 50);
+  return c;
 }
 
 char *floattochar(float i)
