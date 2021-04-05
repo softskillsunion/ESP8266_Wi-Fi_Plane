@@ -32,7 +32,7 @@ const char *apPwd = "12345678"; // 基地台模式登入密碼
 /***************↑↑↑↑↑ 更改設定值 ↑↑↑↑↑***************/
 
 #define motorA D1
-#define motorB D5
+#define motorB D2
 #define pinReset D3 // GPIO0
 
 int receivePort = 8888; // 接收UDP封包的通訊埠
