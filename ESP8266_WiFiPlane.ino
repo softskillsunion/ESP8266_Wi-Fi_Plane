@@ -27,7 +27,7 @@ const char *apName = strtochar("SSU WifiPlane " + String(ESP.getChipId()));
 
 /***************↓↓↓↓↓ 更改設定值 ↓↓↓↓↓***************/
 
-const char *apPwd = "12345678"; // 基地台模式登入密碼
+const char *apPwd = "softskillsunion"; // 基地台模式登入密碼
 
 /***************↑↑↑↑↑ 更改設定值 ↑↑↑↑↑***************/
 
